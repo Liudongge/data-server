@@ -3,16 +3,14 @@ const readline = require('readline')
 const bufferpack = require('bufferpack')
 const IP = require('ip')
 
-// const readFileName = './static-sit.gomemyf.com.access.log-20171218'
-const readFileName = './access.test.log.log-20171218'
-// const readFileName = './access_json.log'
+const readFileName = './static/access.test.log.log-20171218'
 const readFileStream = fs.createReadStream(readFileName)
 let cityBuf = {}
 
 //查询ip
 const getCity = ip => {
   if (cityBuf[ip]) return cityBuf[ip] // 如果已经查询过某ip，则从cityBuf中直接返回
-  var content = fs.readFileSync('./ip.dat');
+  var content = fs.readFileSync('./static/ip.dat');
   var offset = bufferpack.unpack('L(len)', content.slice(0, 4));
   if (!offset.len || offset.len < 4) {
     throw new Error('无法解析的ip库');

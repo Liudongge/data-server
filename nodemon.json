@@ -1,8 +1,6 @@
 {
   "ext": "js json hbs",
   "ignore": [
-    "public/*",
-    "data/*",
     "log/*"
   ]
 }

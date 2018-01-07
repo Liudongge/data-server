@@ -1,1 +1,0 @@
-[2018-01-07 15:59:48.857] [INFO] access - ::1 - - "GET /api/public/data/nginx/city/ HTTP/1.1" 200 - "http://localhost:8121/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
