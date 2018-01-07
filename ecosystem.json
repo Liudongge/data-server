@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "name": "data-server",
+      "max_memory_restart": "300M",
+      "script": "./bin/www",
+      "error_file": "./log/pm2/data-server/err.log",
+      "out_file": "./log/pm2/data-server/out.log",
+      "pid_file": "./log/pm2/data-server/pid.pid",
+      "instances": 4,
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
