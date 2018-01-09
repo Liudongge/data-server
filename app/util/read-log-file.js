@@ -66,6 +66,14 @@ exports.getInfoFromLog = (callback) => {
   let cityArr = [] // 城市信息，将转换后的城市信息依次放入数组，接口返回时再进行计数转换
   let referrerArr = [] // 原跳转链接信息
   let browserArr = [] // 浏览器信息
+  let pageAnalysis = {
+    whiteScreenTime: 0,
+    firstScreen: 0,
+    readyTime: 0,
+    allloadTime: 0,
+    counts: 0 // 统计页面被访问次数
+  } // 时间监控
+
   let lineInfo = {} // 每一行log中的@fields信息
   // 读取目标log文件的每一行并做处理
   const objReadline = readline.createInterface({
@@ -81,6 +89,7 @@ exports.getInfoFromLog = (callback) => {
       // 将http_referrer存入referrerArr
       let referrer = lineInfo.http_referrer === '-' ? '' : lineInfo.http_referrer
       referrerArr.push(referrer)
+
       // 浏览器信息整理，参考UserAgent.js做出模块，待完成--liudg--20180109
       // 将浏览器信息存入browserArr
       if (lineInfo.http_user_agent.indexOf('Macintosh') !== -1) {
@@ -89,12 +98,31 @@ exports.getInfoFromLog = (callback) => {
         browserArr.push('Windows Chrome')
       }
       // browserArr.push(lineInfo.http_user_agent)
+
+      // 时间监控
+      let request = lineInfo.request
+      if (lineInfo.request.indexOf('action=speedlog') !== -1) {
+        let requestParamsStr = lineInfo.request.split(' ')[1] // /?action=speedlog&whiteScreenTime=41&firstScreen=43&readyTime=43&allloadTime=44
+        let paramsStr = requestParamsStr.split('?')[1] // action=speedlog&whiteScreenTime=41&firstScreen=43&readyTime=43&allloadTime=44
+        let paramsArr = paramsStr.split('&')
+        let params = {}
+        paramsArr.forEach(item => {
+          let arr = item.split('=')
+          params[arr[0]] = parseInt(arr[1]) // 字符串转成int
+        })
+        pageAnalysis.whiteScreenTime += params.whiteScreenTime
+        pageAnalysis.firstScreen += params.firstScreen
+        pageAnalysis.readyTime += params.readyTime
+        pageAnalysis.allloadTime += params.allloadTime
+        pageAnalysis.counts += 1
+      }
     }
   })
   readFileStream.on('close', () => {
     logInfoSettled.pVisitedCounts = getProvinceCounts(cityArr)
     logInfoSettled.referrerCounts = referrerArr
     logInfoSettled.browserCounts = getCounts(browserArr)
+    logInfoSettled.pageAnalysis = getAverange(pageAnalysis)
     callback(logInfoSettled)
   })
 }
@@ -139,10 +167,19 @@ const getCounts = (arr) => {
   if (typeof(arr) === 'object' && arr.length > 0) {
     let countsObj = {}
     arr.forEach(item => {
-      countsObj[item] > 0 ? countsObj[item] +=1 : countsObj[item] = 1
+      countsObj[item] > 0 ? countsObj[item] += 1 : countsObj[item] = 1
     })
     return countsObj
   } else {
     return null
   }
+}
+
+
+const getAverange = (origiObj) => {
+  origiObj.whiteScreenTime = Math.floor(origiObj.whiteScreenTime / origiObj.counts)
+  origiObj.firstScreen = Math.floor(origiObj.firstScreen / origiObj.counts)
+  origiObj.readyTime = Math.floor(origiObj.readyTime / origiObj.counts)
+  origiObj.allloadTime = Math.floor(origiObj.allloadTime / origiObj.counts)
+  return origiObj
 }
