@@ -21,12 +21,23 @@ exports.cityInfo = (req, res) => {
     })
   }
 }
+let logInfoBuf = null // 连续多次被访问时，出现Provisional headers are shown的错误，缓存访问？IO冲突？待修改--liudg--20180109
 exports.logInfo = (req, res) => {
-  readLogFile.getInfoFromLog((info) => {
+  console.log(logInfoBuf)
+  if (logInfoBuf == null) {
+    readLogFile.getInfoFromLog((info) => {
+      logInfoBuf = info
+      res.json({
+        code: responseCode.SUCCESS,
+        logInfo: info,
+        message: '读取log信息成功'
+      })
+    })
+  } else {
     res.json({
       code: responseCode.SUCCESS,
-      logInfo: info,
+      logInfo: logInfoBuf,
       message: '读取log信息成功'
     })
-  })
+  }
 }
