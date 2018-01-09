@@ -62,9 +62,10 @@ exports.getInfoFromLog = (callback) => {
   //   }
   // })
 
-  let logInfoSettled = {
-    cityInfo: []
-  } // 存放整理后的log信息
+  let logInfoSettled = {} // 存放整理后的log信息
+  let cityArr = [] // 城市信息，将转换后的城市信息依次放入数组，接口返回时再进行计数转换
+  let referrerArr = [] // 原跳转链接信息
+  let browserArr = [] // 浏览器信息
   let lineInfo = {} // 每一行log中的@fields信息
   // 读取目标log文件的每一行并做处理
   const objReadline = readline.createInterface({
@@ -72,13 +73,76 @@ exports.getInfoFromLog = (callback) => {
     crlfDelay: Infinity
   })
   objReadline.on('line', line => {
-    lineInfo = line['@fields']
+    lineInfo = JSON.parse(line)['@fields']
     if (lineInfo){
-      let userIp = http_x_forwarded_for !== '-' ? http_x_forwarded_for : remote_addr
-      logInfoSettled.cityInfo.push(getCity(userIp))
+      // 读取log文件中的ip地址，并转换成对应的城市信息存入cityArr
+      let userIp = lineInfo.http_x_forwarded_for !== '-' ? lineInfo.http_x_forwarded_for : lineInfo.remote_addr
+      cityArr.push(getCity(userIp))
+      // 将http_referrer存入referrerArr
+      let referrer = lineInfo.http_referrer === '-' ? '' : lineInfo.http_referrer
+      referrerArr.push(referrer)
+      // 浏览器信息整理，参考UserAgent.js做出模块，待完成--liudg--20180109
+      // 将浏览器信息存入browserArr
+      if (lineInfo.http_user_agent.indexOf('Macintosh') !== -1) {
+        browserArr.push('Mac Chrome')
+      } else {
+        browserArr.push('Windows Chrome')
+      }
+      // browserArr.push(lineInfo.http_user_agent)
     }
   })
   readFileStream.on('close', () => {
+    logInfoSettled.pVisitedCounts = getProvinceCounts(cityArr)
+    logInfoSettled.referrerCounts = referrerArr
+    logInfoSettled.browserCounts = getCounts(browserArr)
     callback(logInfoSettled)
   })
+}
+
+/**
+ * 从城市列表中获取各省份出现次数
+ * @param  {array} provinceArr 城市列表，每一项有国家、省份、城市、区域四个属性
+ * @return {object}            每个省份出现的次数
+ */
+const getProvinceCounts = provinceArr => {
+  if (typeof(provinceArr) !== 'object' || provinceArr.length === 0){
+    return null
+  } else {
+    let pCountObj = {} // 省份被访问次数，结构为：[provicnce]: [counts]
+    provinceArr.forEach(item => {
+      pCountObj[item.province] > 0 ? pCountObj[item.province] += 1 : pCountObj[item.province] = 1
+    })
+    return pCountObj
+  }
+}
+
+/**
+ * 从数组中
+ * @param  {array} arr 数组对象，格式为：[key1, key2, key3...]
+ * @param  {string} key 需要从数组对象arr中获取的key
+ * @return {[type]}     key出现的次数
+ */
+const getKeyCounts = (arr, key) => {
+  if (typeof(arr) === 'object' && arr.length > 0) {
+    let countsObj = {}
+    arr.forEach(item => {
+      countsObj[item[key]] > 0 ? countsObj[item[key]] +=1 : countsObj[item[key]] = 1
+    })
+    return countsObj
+  } else {
+    return null
+  }
+}
+
+
+const getCounts = (arr) => {
+  if (typeof(arr) === 'object' && arr.length > 0) {
+    let countsObj = {}
+    arr.forEach(item => {
+      countsObj[item] > 0 ? countsObj[item] +=1 : countsObj[item] = 1
+    })
+    return countsObj
+  } else {
+    return null
+  }
 }
