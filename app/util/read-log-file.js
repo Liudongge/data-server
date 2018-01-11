@@ -4,6 +4,8 @@ const bufferpack = require('bufferpack')
 const IP = require('ip')
 
 const readFileName = './static/access_json.log'
+// const readFileName = './static/access_json_time.log'
+// const readFileName = '/usr/local/Cellar/nginx/1.12.2_1/logs/access_json.log'
 const readFileStream = fs.createReadStream(readFileName)
 let cityBuf = {}
 
