@@ -164,7 +164,11 @@ const getKeyCounts = (arr, key) => {
   }
 }
 
-
+/**
+ * 遍历数组并返回各项的个数
+ * @param  {array} arr 原数组，格式为：[item1, item2, item3, ..., item3, ...]
+ * @return {object}    计数用对象 格式为{item1: count1, item2: count2, ...}
+ */
 const getCounts = (arr) => {
   if (typeof(arr) === 'object' && arr.length > 0) {
     let countsObj = {}
@@ -177,7 +181,11 @@ const getCounts = (arr) => {
   }
 }
 
-
+/**
+ * 获取平均值
+ * @param  {object} origiObj 时间监控对象
+ * @return {object}          处理后的时间监控对象
+ */
 const getAverange = (origiObj) => {
   origiObj.whiteScreenTime = Math.floor(origiObj.whiteScreenTime / origiObj.counts)
   origiObj.firstScreen = Math.floor(origiObj.firstScreen / origiObj.counts)
